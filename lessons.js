@@ -4,7 +4,7 @@ const fs = require("fs");
 const cors = require ("cors");
 const app = express();
 const port = 3000; 
-app.set('json spaces', 3);
+app.set('json spaces', 4);
 //Middleware for fetching products and putting them in server
 app.use(cors());
 
