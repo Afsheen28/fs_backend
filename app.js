@@ -9,7 +9,7 @@ const port = 3000;
 
 //Middleware to log incoming requests
 app.use((req, res, next) => {
-    console.log(`Request URL: ${req.url}`);
+    console.log(`Request URL: ${req.url}`); //hello
     next();
 });
 
