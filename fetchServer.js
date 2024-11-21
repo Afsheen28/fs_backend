@@ -197,6 +197,39 @@ app.get("/api/lessons", async (req, res) => {
     }
 });
 
+//Order Collection
+app.post ('/collections/orders', async (req, res, next) => {
+    try {
+        const { name, phone, lessonIDs, availability } = req.body;
+
+        //Validation
+        if (!name || !phone || !lessonIDs || !availability || !Array.isArray(lessonIDs)) {
+            return res.status(400).send("Invalid request. Ensure all fields are provided and lessonIDs is an array.");
+        }
+
+        //Create the order document
+        const newOrder = {
+            name,
+            phone,
+            lessons,
+            availability,
+            orderDate: new Date()
+        };
+
+        //Insert the order into the database
+        const result = await req.collection.insertOne(newOrder);
+
+        //Send success response
+        res.status(201).send({
+            msg: "Order created successfully",
+            orderId: result.insertedId
+        });
+    } catch (err) {
+        console.error("Error creating order:", err);
+        next(err);
+    }
+});
+
 //Placeholder routes
 app.post("/", (req, res) => {
     res.send("a POST request? Let’s create a new element");

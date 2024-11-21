@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!--<script src="lessons.js"></script>!-->
+    <title>Lesson Information</title>
+</head>
+
+<body>
+    <!-- Page Heading -->
+    <h1>After School Classes</h1>
+
+    <div id="app">
+        <!--Navigation Bar-->
+        <div class="navbar">
+            <!--Cart Button (Toggles between showing cart and lessons) -->
+            <div class="cart-toggle">
+                <i class="fa-solid fa-cart-shopping"></i> <!--Cart Icon-->
+                <button @click="toggleCart" :disabled="cart.length === 0 && !showCheckout">
+                    {{ showCheckout ? 'Continue Shopping' : `Go to Checkout (${totalQuantity})` }}
+                </button>
+            </div>
+            <!--Search Bar-->
+            <div class="search-bar">
+                <i class="fa-solid fa-magnifying-glass"></i> <!--Search Icon-->
+                <input type="text" placeholder="Search here..." class="search-input">
+            </div>
+            <!--Navigation Buttons-->
+            <div class="nav-buttons">
+                <!--Home Button-->
+                <button>Home</button>
+                <!--FAQs-->
+                <button>FAQs</button>
+                <!--Contact Us-->
+                <button>Contact Us</button>
+            </div>
+        </div>
+
+        <!--Cart display (shown when showCheckout is true)-->
+        <div v-if="showCheckout" class="checkout">
+            <h2>Checkout</h2>
+            <div class="checkout-content">
+                <ul class="checkout-list">
+                    <li v-for="(item, index) in cart" :key="item.id" class="checkout-item">
+                        <img :src="item.lesson.imagePath" :alt="item.lesson.imageAlt" class="checkout-image">
+                        <div>
+                            <strong>{{ item.lesson.subject }}</strong>
+                            <span> - £{{ item.lesson.price }}</span>
+                        </div>
+
+                        <!--Quantity Controls-->
+                        <div class="quantity-controls">
+                            <button @click="decreaseQuantity(item)" :disabled="item.quantity <= 1">-</button>
+                            <span>{{ item.quantity }}</span>
+                            <button @click="increaseQuantity(item)">+</button>
+                        </div>
+                        <button @click="removeFromCart(item, index)">Remove</button>
+                    </li>
+                </ul>
+                <div class="checkout-total">
+                    <p><strong>Total: £{{ cartTotal }}</strong></p>
+                </div>
+                <!--Input fields for Name and Phone-->
+                <div>
+                    <label for="fullName">Full Name:</label>
+                    <input type="text" v-model="customerFullName" @input="validateFields"
+                        placeholder="Enter your Full Name" />
+                </div>
+                <div>
+                    <label for="addressLineOne">Address Line One:</label>
+                    <input type="text" v-model="customerAddressLineOne" @input="validateFields"
+                        placeholder="Enter your First Line Of Address " />
+                </div>
+                <div>
+                    <label for="addressLineTwo">Address Line Two:</label>
+                    <input type="text" v-model="customerAddressLineTwo" @input="validateFields"
+                        placeholder="Enter your Second Line Of Address" />
+                </div>
+                <div>
+                    <label for="postcode">Postcode:</label>
+                    <input type="text" v-model="customerPostcode" @input="validateFields"
+                        placeholder="Enter your Postcode" />
+                </div>
+                <div>
+                    <label for="email">Email Address:</label>
+                    <input type="text" v-model="customerEmail" @input="validateFields"
+                        placeholder="Enter your Email Address" />
+                </div>
+                <div>
+                    <label for="phone">Phone Number:</label>
+                    <input type="number" v-model="customerPhone" @input="validateFields"
+                        placeholder="Enter your Phone Number" />
+                </div>
+
+                <!--Checkout Button-->
+                <button @click="submitOrder" :disabled="!isFormValid">Confirm Details</button>
+
+                <!--Confirmation Message-->
+                <p v-if="orderSubmitted">{{ confirmationMessage }}</p>
+            </div>
+        </div>
+
+        <!-- Sorting Options -->
+        <div v-if="!showCheckout" class="sort-options">
+            <label for="sortBy">Sort By:</label>
+            <select v-model="sortBy" @change="sortLessons">
+                <option value="subject">Subject</option>
+                <option value="location">Location</option>
+                <option value="price">Price</option>
+                <option value="availability">Availability</option>
+            </select>
+            <button @click="toggleSortOrder">{{ sortOrderLabel }}</button>
+        </div>
+
+        <!-- Product List (shown when not in checkout) -->
+        <div v-if="!showCheckout" class="lesson-list">
+            <!-- Loop through each lesson -->
+            <div v-for="lesson in sortedLessons" :key="lesson.id" class="lesson-container">
+                <!-- Image -->
+                <img :src="lesson.imagePath" :alt="lesson.imageAlt" class="lesson-image">
+                <!-- Subject -->
+                <div class="lesson-info">
+                    <strong>Subject:</strong> {{ lesson.subject }}
+                </div>
+                <!-- Location -->
+                <div class="lesson-info">
+                    <strong>Location:</strong> {{ lesson.location }}
+                </div>
+                <!-- Price -->
+                <div class="lesson-info lesson-price">
+                    <strong>Price:</strong> £{{ lesson.price }}
+                </div>
+                <!-- Add to Cart Button -->
+                <button @click="addToCart(lesson)" :disabled="lesson.availability === 0" class="addToCartBtn">
+                    Add To Cart
+                </button>
+                <!-- Availability -->
+                <div class="lesson-availability">
+                    <strong>Available:</strong> {{ lesson.availability }}
+                    <!--Rating-->
+                    <div class="lesson-rating">
+                        <span v-for="n in 5" :key="n" class="star">
+                            <i :class="n <= lesson.rating ? 'fa-solid fa-star' : 'fa-regular fa-star'"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vue.js -->
+    <script src="https://unpkg.com/vue@2.6.14"></script>
+    <script>
+        let webstore = new Vue({ 
+            el: '#app',
+            data: {
+                showCheckout: false, // Determines whether to show the cart page or lessons page
+                lessons: [], //lessons
+                cart: [], // Shopping cart
+                sortBy: 'subject', // Default sorting attribute
+                sortOrder: 'asc', // Default sort order
+                customerFullName: '',
+                customerAddressLineOne: '',
+                customerAddressLineTwo: '',
+                customerPostcode: '',
+                customerPhone: '',
+                customerEmail: '',
+                orderSubmitted: false,
+                confirmationMessage: '',
+            },
+            created: function () {
+                fetch("http://localhost:3000/api/lessons").then(
+                    function(response) {
+                        response.json().then(
+                            function(json) {
+                                //alert(json);
+                                //console.log(json);
+                                webstore.lessons = json;
+                            }
+                        )
+                    }
+                )
+            },
+            methods: {
+                toggleCart() {
+                    // Toggle between showing the cart and the lessons
+                    this.showCheckout = !this.showCheckout;
+                },
+                addToCart(lesson) {
+                    const existingItem = this.cart.find(item => item.lesson.id === lesson.id);
+                    if (existingItem) {
+                        existingItem.quantity++; //Increase quantity if already in cart
+                    } else {
+                        this.cart.push({ lesson, quantity: 1 }); //Add new item with quantity 1
+                    }
+                    if (lesson.availability > 0) {
+                        lesson.availability--; // Reduce availability by 1
+                    }
+                },
+                removeFromCart(item, index) {
+                    // Add back availability for the lesson
+                    let lesson = this.lessons.find(lesson => lesson.id === item.id);
+                    if (lesson) {
+                        lesson.availability += item.quantity; //Add back availability for the lesson
+                    }
+                    // Remove the lesson from the cart
+                    this.cart.splice(index, 1);
+                },
+                increaseQuantity(item) {
+                    if (item.lesson.availability > 0) {
+                        item.quantity++;
+                        item.lesson.availability--;
+                    }
+                },
+                decreaseQuantity(item) {
+                    if (item.quantity > 1) {
+                        item.quantity--;
+                        item.lesson.availability++;
+                    }
+                },
+                sortLessons() {
+                    // Sorting method when the sorting options change
+                    this.sortedLessons();
+                },
+                toggleSortOrder() {
+                    // Toggle sorting between ascending and descending
+                    this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
+                    this.sortLessons(); // Re-sort lessons after toggling order
+                },
+                validateFields() {
+                    // Trigger computed property reactivity
+                },
+                validateName() {
+                    return /^[a-zA-Z]+$/;
+                },
+                validatePhone() {
+                    return /^\d+$/.test(this.customerPhone);
+                },
+                validateEmail() {
+                    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.customerEmail);
+                },
+                validatePostcode() {
+                    return /^[a-zA-Z0-9\s]{3,10}$/.test(this.customerPostcode);
+                },
+                submitOrder() {
+                    if (this.isFormValid) {
+                        this.orderSubmitted = true;
+                        this.confirmationMessage = `Congratulations ${this.customerFullName}, your order has been submitted successfully! A text message of confirmation will be sent to your number: ${this.customerPhone}.`;
+                        // Reset fields
+                        this.customerFullName = '';
+                        this.customerPhone = '';
+                        this.customerEmail = '';
+                        this.customerAddressLineOne = '';
+                        this.customerAddressLineTwo = '';
+                        this.customerPostcode = '';
+                        this.cart = []; //Clear cart after submission of form
+                    }
+                }
+            },
+            computed: {
+                sortedLessons() {
+                    // Returns a sorted copy of the lessons array
+                    return [...this.lessons].sort((a, b) => {
+                        let attributeA = a[this.sortBy];
+                        let attributeB = b[this.sortBy];
+                        if (this.sortOrder === 'asc') {
+                            return attributeA > attributeB ? 1 : attributeA < attributeB ? -1 : 0;
+                        } else {
+                            return attributeA < attributeB ? 1 : attributeA > attributeB ? 1 : 0;
+                        }
+                    });
+                },
+                totalQuantity() {
+                    return this.cart.reduce((total, item) => total + item.quantity, 0);
+                },
+                cartTotal() {
+                    // Computes the total cost of items in the cart
+                    return this.cart.reduce((total, item) => total + (item.lesson.price * item.quantity), 0).toFixed(2);
+                },
+                sortOrderLabel() {
+                    // Label for the sort order toggle button
+                    return this.sortOrder === 'asc' ? 'Ascending' : 'Descending';
+                },
+                isFormValid() {
+                    // Check if both name and phone number are valid
+                    return this.validateName() && this.validatePhone();
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
