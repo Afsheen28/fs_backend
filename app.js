@@ -52,7 +52,7 @@ async function connectDB() {
         console.log("Connected to MongoDB");
     } catch (err) {
         console.error("Failed to connect to MongoDB:", err);
-        process.exit(1); // Exit if connection fails
+        process.exit(1); //Exit if connection fails
     }
 }
 
@@ -72,7 +72,7 @@ app.get("/lessons", async (req, res) => {
     }
 });
 
-// POST order endpoint (Handles cart and updates availability)
+//POST order endpoint (Handles cart and updates availability)
 app.post("/collections/orders", async (req, res) => {
     const { name, phone, cart } = req.body;
 
