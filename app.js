@@ -136,9 +136,9 @@ app.post("/collections/orders", async (req, res) => {
 app.put('/collections/lessons/:lessonId', async (req, res, next) => {
     try {
         const lessonId = req.params.lessonId;
-        const updatedLesson = req.body;  // Contains the new lesson data
+        const updatedLesson = req.body;  //Contains the new lesson data
         
-        // Ensure the incoming body has valid data (optional validation logic can be added)
+        //Ensure the incoming body has valid data (optional validation logic can be added)
         if (!updatedLesson || typeof updatedLesson !== 'object') {
             return res.status(400).send("Invalid lesson data.");
         }
