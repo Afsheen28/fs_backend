@@ -143,12 +143,12 @@ app.put('/collections/lessons/:lessonId', async (req, res, next) => {
             return res.status(400).send("Invalid lesson data.");
         }
 
-        // Prevent overwriting the _id field accidentally
+        //Prevent overwriting the _id field accidentally
         delete updatedLesson._id;
 
         const result = await db.collection('Lessons').updateOne(
             { _id: new ObjectId(lessonId) },
-            { $set: updatedLesson }  // Replace the fields with the new values
+            { $set: updatedLesson }  //Replace the fields with the new values
         );
 
         if (result.matchedCount === 0) {
