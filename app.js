@@ -102,7 +102,7 @@ app.post("/collections/orders", async (req, res) => {
                 throw new Error(`Not enough availability for lesson ID ${lessonId}.`);
             }
 
-            // Update availability
+            //Update availability
             await lessonsCollection.updateOne(
                 { id: lessonId },
                 { $inc: { availability: -quantity } },
