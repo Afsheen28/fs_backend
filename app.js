@@ -166,7 +166,7 @@ app.put('/collections/lessons/:lessonId', async (req, res, next) => {
 app.get('/search', async (req, res) => {
     const searchTerm = req.query.searchTerm?.toLowerCase() || '';
 
-    // Replace with your MongoDB search logic
+    //Replace with your MongoDB search logic
     const results = await db.collection('Lessons').find({
         $or: [
             { subject: { $regex: searchTerm, $options: 'i' } },
@@ -176,10 +176,10 @@ app.get('/search', async (req, res) => {
         ]
     }).toArray();
 
-    res.json(results);  // Send results back to Vue.js app
+    res.json(results);  //Send results back to Vue.js app
 });
   
-// Error-handling middleware
+//Error-handling middleware
 app.use((err, req, res, next) => {
     res.status(500).send({
         message: "An unexpected error occurred.",
@@ -187,12 +187,12 @@ app.use((err, req, res, next) => {
     });
 });
 
-// Middleware to handle 404 errors (must be placed after all other routes)
+//Middleware to handle 404 errors (must be placed after all other routes)
 app.use((req, res) => {
     res.status(404).send("Operation not available.");
 });
 
-// Starting the server after the connection is established
+//Starting the server after the connection is established
 connectDB().then(() => {
     app.listen(port, () => {
         console.log(`Server running on http://localhost:${port}`);
