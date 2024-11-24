@@ -43,7 +43,7 @@ const collectionName = "Lessons";
 let client;
 let db; 
 
-// Connect to MongoDB once and store db reference
+//Connect to MongoDB once and store db reference
 async function connectDB() {
     try {
         client = new MongoClient(uri);
