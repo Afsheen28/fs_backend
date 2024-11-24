@@ -110,7 +110,7 @@ app.post("/collections/orders", async (req, res) => {
             );
         }
 
-        // Save the order
+        //Save the order
         const order = {
             name,
             phone,
