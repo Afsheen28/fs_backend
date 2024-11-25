@@ -9,6 +9,11 @@ const port = 3000;
 
 app.use(express.json());
 
+//Root route
+app.get("/", (req, res) => {
+    res.send("Welcome to our lesson store!");
+});
+
 //Middleware to log incoming requests
 app.use((req, res, next) => {
     console.log(`Request URL: ${req.url}`);
