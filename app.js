@@ -137,7 +137,7 @@ app.post("/collections/orders", async (req, res) => {
 });
 
 
-//PUT 
+//PUT route that updates Lessons collection
 app.put('/collections/lessons/:lessonId', async (req, res, next) => {
     try {
         const lessonId = req.params.lessonId;
